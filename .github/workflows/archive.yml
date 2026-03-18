@@ -2,7 +2,8 @@ name: Archive Richemont Alaïa Jobs
 
 on:
   schedule:
-    - cron: '0 9 * * *'  # 10h heure française
+    - cron: '0 9 * * *'
+  workflow_dispatch:
 
 jobs:
   archive:
@@ -14,7 +15,7 @@ jobs:
           DATE=$(date '+%Y-%m-%d %H:%M')
           RESPONSE=$(curl -s "https://web.archive.org/save/$URL")
           echo "$DATE - Archive créée" >> archive_log.txt
-          
+
       - name: Sauvegarder le log
         uses: actions/upload-artifact@v3
         with:
