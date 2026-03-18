@@ -1,0 +1,22 @@
+name: Archive Richemont Alaïa Jobs
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # 10h heure française
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Archive page
+        run: |
+          URL="https://careers.richemont.com/en/jobs/alaia/?search=&country=France&location=Paris&pattern=On-Site&pagesize=20#results"
+          DATE=$(date '+%Y-%m-%d %H:%M')
+          RESPONSE=$(curl -s "https://web.archive.org/save/$URL")
+          echo "$DATE - Archive créée" >> archive_log.txt
+          
+      - name: Sauvegarder le log
+        uses: actions/upload-artifact@v3
+        with:
+          name: archive-log
+          path: archive_log.txt
