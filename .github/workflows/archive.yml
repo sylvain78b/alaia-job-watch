@@ -3,7 +3,6 @@ on:
   schedule:
     - cron: '10 11 * * *'
   workflow_dispatch:
-
 jobs:
   archive:
     runs-on: ubuntu-latest
@@ -13,17 +12,21 @@ jobs:
           URL="https://careers.richemont.com/en/jobs/alaia/?search=&country=France&location=Paris&pattern=On-Site&pagesize=20"
           DATE=$(date '+%Y-%m-%d %H:%M UTC')
 
-          # Appel avec headers pour récupérer l'URL archivée
-          HEADERS=$(curl -s -D - -o /dev/null "https://web.archive.org/save/$URL")
+          HEADERS=$(curl -s -D - -o /dev/null \
+            --max-time 60 \
+            -A "Mozilla/5.0 (compatible; archive-bot)" \
+            "https://web.archive.org/save/$URL")
 
-          # Extraire l'URL de l'archive depuis le header Content-Location
+          echo "--- HEADERS BRUTS ---" >> archive_log.txt
+          echo "$HEADERS" >> archive_log.txt
+
           ARCHIVE_PATH=$(echo "$HEADERS" | grep -i "Content-Location:" | tr -d '\r' | awk '{print $2}')
 
           if [ -n "$ARCHIVE_PATH" ]; then
             ARCHIVE_URL="https://web.archive.org$ARCHIVE_PATH"
             echo "$DATE - ✅ Archive créée : $ARCHIVE_URL" >> archive_log.txt
           else
-            echo "$DATE - ❌ Échec de l'archivage (pas de Content-Location dans la réponse)" >> archive_log.txt
+            echo "$DATE - ❌ Échec de l'archivage" >> archive_log.txt
           fi
 
       - name: Sauvegarder le log
