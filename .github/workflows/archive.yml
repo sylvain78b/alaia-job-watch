@@ -1,20 +1,30 @@
 name: Archive Richemont Alaïa Jobs
-
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 jobs:
   archive:
     runs-on: ubuntu-latest
     steps:
-      - name: Archive page
+      - name: Archive page via Wayback Machine
         run: |
-          URL="https://careers.richemont.com/en/jobs/alaia/?search=&country=France&location=Paris&pattern=On-Site&pagesize=20#results"
-          DATE=$(date '+%Y-%m-%d %H:%M')
-          RESPONSE=$(curl -s "https://web.archive.org/save/$URL")
-          echo "$DATE - Archive créée" >> archive_log.txt
+          URL="https://careers.richemont.com/en/jobs/alaia/?search=&country=France&location=Paris&pattern=On-Site&pagesize=20"
+          DATE=$(date '+%Y-%m-%d %H:%M UTC')
+
+          # Appel avec headers pour récupérer l'URL archivée
+          HEADERS=$(curl -s -D - -o /dev/null "https://web.archive.org/save/$URL")
+
+          # Extraire l'URL de l'archive depuis le header Content-Location
+          ARCHIVE_PATH=$(echo "$HEADERS" | grep -i "Content-Location:" | tr -d '\r' | awk '{print $2}')
+
+          if [ -n "$ARCHIVE_PATH" ]; then
+            ARCHIVE_URL="https://web.archive.org$ARCHIVE_PATH"
+            echo "$DATE - ✅ Archive créée : $ARCHIVE_URL" >> archive_log.txt
+          else
+            echo "$DATE - ❌ Échec de l'archivage (pas de Content-Location dans la réponse)" >> archive_log.txt
+          fi
 
       - name: Sauvegarder le log
         uses: actions/upload-artifact@v4
