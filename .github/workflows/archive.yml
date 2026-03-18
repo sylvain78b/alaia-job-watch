@@ -17,7 +17,7 @@ jobs:
           echo "$DATE - Archive créée" >> archive_log.txt
 
       - name: Sauvegarder le log
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: archive-log
           path: archive_log.txt
